@@ -1,0 +1,9 @@
+.injs-ph-c-color {
+    color: #fff !important;
+}
+.injs-ph-c-color::placeholder {
+    color: #fff !important;
+}
+button{
+    outline: 0 !important;
+}

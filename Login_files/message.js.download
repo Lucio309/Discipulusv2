@@ -1,0 +1,66 @@
+const message = {
+    Email: 'Email is required',
+    Password: 'Password is required',
+    Load: `<div class="main-loader"><div class="preloader-wrapper small active"><div class="spinner-layer spinner-blue-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div></div>`,
+    LoginResBefs: {
+        backgroundColor: 'rgb(0, 0, 0, .0)',
+        marginBottom: '10px',
+        outline: 'none',
+    },
+    LoginResScs: {
+        backgroundColor: '#4298DE',
+        marginBottom: '0px',
+    },
+    EmailPwd: `<div class="alert alert-danger" style="text-align: center;" role="alert">Username or Password is invalid.</div>`,
+    NotVrfd: `<div class="alert alert-warning" style="text-align: center;" role="alert">Account is not yet verified. Please verify your email <a href="/Verification/ResendEmail">here</a>.</div>`,
+    Smthwnt: `Something went wrong please try agin !`,
+    PlsChsts: "Please check your internet connection, Status : ",
+    LnmReq: "Lastname is required",
+    Mddreq: "Middlename is required",
+    FnmReq: "Firstname is required",
+    PwdCof: "Confirm Password is required",
+    PwdNotM: "Password is not match",
+    RegBeforSe: {
+        backgroundColor: '#4298DE',
+        marginBottom: '0px',
+    },
+    RegSuccess: {
+        backgroundColor: 'rgb(0, 0, 0, .0)',
+        marginBottom: '10px',
+        outline: 'none',
+    },
+    DivSmtWent: `<div class="alert alert-danger" style="text-align: center;" role="alert">Something went wrong please try again.</div>`,
+    SuccessWeSendEm: `<div class="alert alert-info" style="text-align: center;" role="alert">Success ! We sent a verification link to your email address.</div>`,
+    PlsChckInCannot: 'Please check your internet connection, Cannot send request, Message: ',
+    RqUrlNoF: 'Requested Url is not found !',
+    RsemailBeforeS: {
+        backgroundColor: 'rgb(0, 0, 0, .0)',
+        marginBottom: '10px'
+    },
+    RsemailSuccess: {
+        backgroundColor: '#3099dc',
+        arginBottom: '10px'
+    },
+    RseEmailNotExists: `<div class="alert alert-warning" style="text-align: center;" role="alert">Email does not exists.</div>`,
+    RseEmailSWnw: `<div class="alert alert-danger" style="text-align: center;" role="alert">Something went wrong. Please try again.</div>`,
+    RseEmailVerified: `<div class="alert alert-danger" style="text-align: center;" role="alert">Email already verified.</div>`,
+    RseCodeSent: `<div class="alert alert-success" style="text-align: center;" role="alert">Verification code sent please check your email.</div>`,
+    RseCodeSentDf: {
+        backgroundColor: '#3099dc',
+        marginBottom: '10px'
+    },
+    NewPasswordSend: `<div class="alert alert-success" style="text-align: center;" role="alert">New password sent to your email.</div>`,
+    VerifyResndEm: {
+        backgroundColor: 'transparent',
+        marginBottom: '10px'
+    },
+    EmailAlVr: 'Email already verified.',
+    EmailVerRedir: 'Email verified redirecting to login...',
+    StdType: 'Student type is required.',
+    RegistrionSuccess: `<div class="alert alert-success mt-n1 mx-md-n5" style="margin-top: 40px;" role="alert">
+                  <h4 class="alert-heading">Well done!</h4>
+                  <p>Congratulations! Your profile is successfully updated. </p>
+                  <hr>
+                  <p class="mb-0">Please proceed for the payment of the Evaluation Fee to continue.</p>
+                </div>`,
+}

@@ -1,0 +1,4 @@
+inJS.Require.Javascript([
+    _BaseURL + '/Scripts/srpt_inson/jscpt/message/message.js',
+    _BaseURL +`/Scripts/srpt_inson/jscpt/auth_login/login.js?v=${new Date().toISOString()}`,
+], 'body');

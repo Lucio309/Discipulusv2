@@ -1,0 +1,12 @@
+window.onload = function(e) {
+   document.body.style.cssText = "height: auto !important";
+   inJS.Disabled.Materialize.Input();
+   inJS.Disabled.Materialize.Button();
+   inJS.Disabled.Materialize.Select();
+   // inJS.UserAgent.Browser.UsedBrowser()[0] != "Chrome"
+   // ? inJS.Errors.setError("Google chrome is required !")
+   //     : true;
+   console.warn('You are using ' + inJS.UserAgent.Browser.UsedBrowser()[0] + ' with version of ' + inJS.UserAgent.Browser.UsedBrowser()[1])
+/* apply javascript to all layouts here */
+    
+}

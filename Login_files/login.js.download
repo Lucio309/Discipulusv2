@@ -1,0 +1,1075 @@
+$(document).ready(function () {
+   setTimeout(function () {
+      $(".app_middle_contain").fadeIn(100);
+      $(".social-logins").css("display", "block");
+   }, 2000);
+});
+
+function myFunction() {
+   var x = document.getElementById("StudPass");
+   if (x.type === "password") {
+      x.type = "text";
+   } else {
+      x.type = "password";
+   }
+}
+
+function setCookie(name, value) {
+   var expirationDate = new Date();
+   expirationDate.setDate(expirationDate.getHours() + 2);
+
+   // Set the domain attribute to include the main domain and its subdomains
+   // var domainString = "domain=amasystem.net";
+   var domainString = "/";
+
+   var cookieString = name + "=" + encodeURIComponent(value) + "; expires=" + expirationDate.toUTCString() + "; " + domainString + "; path=/";
+
+   // Set the cookie
+   document.cookie = cookieString;
+}
+
+const SendCode = () => {
+   var handleTimer;
+   let timer = 30;
+   $("#JC_SendCode").attr("disabled", true);
+
+   handleTimer = setInterval(() => {
+      timer--;
+      if (timer === 0) {
+         clearInterval(handleTimer);
+         $("#JC_SendCode").attr("disabled", false);
+         $("#JC_SendCode").html(`Resend Code`);
+      }
+      if (timer > 0) {
+         $("#JC_SendCode").html(`Resend Code in ${timer}`);
+      }
+   }, 1000);
+};
+
+const validateEmail = (email) => {
+   var re = /\S+@\S+\.\S+/;
+   return re.test(email);
+};
+
+const Validator = (id) => {
+   let field = document.querySelector(`input#${id}`);
+   let alert = document.querySelector(`span.${id}`);
+
+   if (field.value !== "") {
+      field.classList.remove("border-danger");
+      alert.innerHTML = "";
+   }
+};
+
+const SubmitUpdateInfo = async (Email, ContactNo) => {
+   const res = await axios.post(_BaseURL + "/Auth/UpdateStudentInfo", {
+      Email_SID: $(".form_login_username").val(),
+      Password: $(".form_login_pwd").val(),
+      Email: Email,
+      ContactNo: ContactNo,
+   });
+
+   const { data } = res;
+
+   return data;
+};
+
+const JCMinor = (id, name, branch, isupdated, email, contact) => {
+   $.confirm({
+      title: "PARENT/GUARDIAN CONSENT FORM",
+      content: `
+        <div class="d-inline float-left p-2" style="line-height: 2;">
+            I, <input type="text" class="form-control d-inline" id="minorGuardian" style="width: 200px" placeholder="(Name of Parent/Guardian)" />
+            , parent/guardian of <input type="text" class="form-control d-inline" id="minorStudent" style="width: 200px" value="${name}" placeholder="(Name of Student)" />, hereby grant my consent to and allow <input type="text" class="form-control d-inline" id="minorBranchName" style="width: 200px" value="${branch}" placeholder="(Name of AMA School)" /> the school,  to collect, process, use and retain my childs/wards  personal information upon enrollment and during his/her stay in the school in accordance with the Data Privacy Act of 2012.
+            <br>
+            My child/wards personal information includes his/her name; age; gender; address; phone number; e-mail; religion, family status or information; education or medical history; among others, acquired from myself and/or my child/ward upon enrollment and throughout his/her stay in the school.
+            <br>
+            This consent does not grant the school the right to disclose my child/wards personal information to any third parties unless the same is with my consent, or when it is used for legitimate and reasonable purpose/s, or when the same is to be shared with the affiliates of the school, or with government agencies as required by law or regulations.
+        </div>
+        `,
+      theme: "modern",
+      columnClass: "xlarge",
+      type: "blue",
+      draggable: false,
+      buttons: {
+         OK: {
+            text: "I hereby agree to and consent to the Data Privacy Policy of AMAES",
+            btnClass: "btn-green",
+            action: function () {
+               let minorGuardian = document.querySelector("#minorGuardian");
+               let minorStudent = document.querySelector("#minorStudent");
+               let minorBranchName = document.querySelector("#minorBranchName");
+
+               if (minorGuardian.value === "" || minorStudent.value === "") {
+                  alert("Fill up the fields");
+                  return false;
+               } else {
+                  axios
+                     .post(_BaseURL + "/Auth/InsertConsent", {
+                        StudentID: id,
+                        StudentName: minorStudent.value,
+                        GuardianName: minorGuardian.value,
+                        ConsentType: "Minor",
+                     })
+                     .then((res) => {
+                        console.log(res);
+                        if (isupdated === null) {
+                           $.dialog({
+                              title: `Please confirm your Email and Contact Number`,
+                              theme: "modern",
+                              animation: "scale",
+                              closeIcon: false,
+                              draggable: false,
+                              backgroundDismiss: false,
+                              columnClass: "small",
+                              containerFluid: true,
+                              backgroundDismissAnimation: "glow",
+                              bgOpacity: 1,
+                              content: `
+                                <div id="JCVerify" style="padding-top: 10px;">
+                                    <div class="d-flex justify-content-center">
+                                    <div class="col-lg-12 col-md-12 col-sm-12">
+                                        <h5 class="pb-5">IMPORTANT: If the data below is not your current email or contact number, please change it.</h5>
+                                        <div class="form-group">
+                                            <label>Email</label>
+                                            <input 
+                                                type="text"
+                                                class="form-control"
+                                                value="${email || ""}"
+                                                id="JC_Email"
+                                                oninput="Validator('JC_Email')"
+                                            />
+                                            <span class="text-danger JC_Email"></span>
+                                            <span class="emailError text-danger"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>ContactNo (11 digit # ex. 09123456789)</label>
+                                            <input 
+                                                type="text"
+                                                class="form-control"
+                                                value="${contact || ""}"
+                                                id="JC_ContactNo"
+                                                maxlength="11"
+                                                onkeypress="NumbersOnly(event)"
+                                                oninput="Validator('JC_ContactNo')"
+                                            />
+                                            <span class="text-danger JC_ContactNo"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <button class="btn btn-success" onclick="UpdateInfo()">Confirm</button>
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div>
+                            `,
+                           });
+                        } else {
+                           axios
+                              .post(_BaseURL + "/Auth/UserLogin", {
+                                 Username: $(".form_login_username").val(),
+                                 Password: $(".form_login_pwd").val(),
+                              })
+                              .then((res) => {
+                                 console.log(res);
+                                 setCookie("dc-token", res?.data?.jwtToken);
+                                 window.location.href = _BaseURL + "/HomePage/Home?log=new";
+                              });
+                        }
+                     })
+                     .catch((err) => {
+                        alert(err);
+                     });
+               }
+            },
+         },
+         Cancel: {
+            text: "Cancel",
+            btnClass: "btn-default",
+            action: function () {
+               return true;
+            },
+         },
+      },
+   });
+};
+
+const JCAdult = (id, name, branch, isupdated, email, contact) => {
+   $.confirm({
+      title: "STUDENT CONSENT FORM",
+      content: `
+        <div class="d-inline float-left p-2" style="line-height: 2;">
+            I, <input type="text" class="form-control d-inline" id="adultStudentName" style="width: 300px" value="${name}" placeholder="(Name of Student)" autofocus="true" />
+            , am giving my consent to and allow <input type="text" class="form-control d-inline" id="adultBranchName" style="width: 300px" placeholder="(Name of AMA School)" value="${branch}" /> the school  to collect, process, use and retain personal information upon my enrollment and during my stay in the school in accordance with the Data Privacy Act of 2012.
+            <br>
+            My personal information includes my name; age; gender; address; phone number; e-mail; religion, political affiliation; marital or family status or information; education or medical history; among others, acquired from myself, my parent/guardian, upon enrollment and throughout my stay in the school.
+            <br>
+            This consent does not grant the school the right to disclose my personal information to any third parties unless the same is with my consent, or when it is used for legitimate and reasonable purpose/s, or when the same is to be shared with the affiliates of the school, or with government agencies as required by law or regulations.
+            <br>
+            Further, in case I have committed any violation of school policies; laws, or ordinances, I hereby give my consent to the school to inform my parent or guardian of such incident.
+        </div>
+        `,
+      theme: "modern",
+      columnClass: "xlarge",
+      type: "blue",
+      draggable: false,
+      buttons: {
+         OK: {
+            text: "I hereby agree to and consent to the Data Privacy Policy of AMAES",
+            btnClass: "btn-green",
+            action: function () {
+               let adultStudentName = document.querySelector("#adultStudentName");
+               let adultBranchName = document.querySelector("#adultBranchName");
+
+               if (adultStudentName.value === "" || adultBranchName.value === "") {
+                  alert("Fill up the fields");
+                  return false;
+               } else {
+                  axios
+                     .post(_BaseURL + "/Auth/InsertConsent", {
+                        StudentID: id,
+                        StudentName: adultStudentName.value,
+                        GuardianName: adultBranchName.value,
+                        ConsentType: "18up",
+                     })
+                     .then((res) => {
+                        console.log(res);
+                        if (isupdated === null) {
+                           $.dialog({
+                              title: `Please confirm your Email and Contact Number`,
+                              theme: "modern",
+                              animation: "scale",
+                              closeIcon: false,
+                              draggable: false,
+                              backgroundDismiss: false,
+                              columnClass: "small",
+                              containerFluid: true,
+                              backgroundDismissAnimation: "glow",
+                              bgOpacity: 1,
+                              content: `
+                                <div id="JCVerify" style="padding-top: 10px;">
+                                    <div class="d-flex justify-content-center">
+                                    <div class="col-lg-12 col-md-12 col-sm-12">
+                                        <h5 class="pb-5">IMPORTANT: If the data below is not your current email or contact number, please change it.</h5>
+                                        <div class="form-group">
+                                            <label>Email</label>
+                                            <input 
+                                                type="text"
+                                                class="form-control"
+                                                value="${email || ""}"
+                                                id="JC_Email"
+                                                oninput="Validator('JC_Email')"
+                                            />
+                                            <span class="text-danger JC_Email"></span>
+                                            <span class="emailError text-danger"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>ContactNo (11 digit # ex. 09123456789)</label>
+                                            <input 
+                                                type="text"
+                                                class="form-control"
+                                                value="${contact || ""}"
+                                                id="JC_ContactNo"
+                                                maxlength="11"
+                                                onkeypress="NumbersOnly(event)"
+                                                oninput="Validator('JC_ContactNo')"
+                                            />
+                                            <span class="text-danger JC_ContactNo"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <button class="btn btn-success" onclick="UpdateInfo()">Confirm</button>
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div>
+                            `,
+                           });
+                        } else {
+                           axios
+                              .post(_BaseURL + "/Auth/UserLogin", {
+                                 Username: $(".form_login_username").val(),
+                                 Password: $(".form_login_pwd").val(),
+                              })
+                              .then((res) => {
+                                 console.log(res);
+                                 setCookie("dc-token", res?.data?.jwtToken);
+                                 window.location.href = _BaseURL + "/HomePage/Home?log=new";
+                              });
+                        }
+                     })
+                     .catch((err) => {
+                        alert(err);
+                     });
+               }
+            },
+         },
+         Cancel: {
+            text: "Cancel",
+            btnClass: "btn-default",
+            action: function () {
+               return true;
+            },
+         },
+      },
+   });
+};
+
+const UpdateInfo = () => {
+   let isComplete = true;
+   let Email = document.querySelector("input#JC_Email");
+   let Email_span = document.querySelector("span.JC_Email");
+   let ContactNo = document.querySelector("input#JC_ContactNo");
+   let ContactNo_span = document.querySelector("span.JC_ContactNo");
+
+   if (!validateEmail(Email.value)) {
+      Email.classList.add("border-danger");
+      Email_span.innerHTML = "Invalid Email";
+      isComplete = false;
+   }
+   if (ContactNo.value === "") {
+      ContactNo.classList.add("border-danger");
+      ContactNo_span.innerHTML = "Required";
+      isComplete = false;
+   } else {
+      if (ContactNo.value.length < 7) {
+         ContactNo.classList.add("border-danger");
+         ContactNo_span.innerHTML = "Invalid Contact Number";
+         isComplete = false;
+      }
+   }
+
+   if (isComplete) {
+      axios
+         .post(_BaseURL + "/Auth/UserLogin", {
+            Username: $(".form_login_username").val(),
+            Password: $(".form_login_pwd").val(),
+         })
+         .then((login) => {
+            console.log(login);
+            SubmitUpdateInfo(Email.value, ContactNo.value)
+               .then((res) => {
+                  console.log(res);
+                  if (res.success) {
+                     const response = JSON.parse(res.data);
+                     console.log(response[0].ResponseCode);
+                     if (response[0].ResponseCode == 0) {
+                        $(".emailError").html("Email already exists.");
+                     } else {
+                        window.location.href = _BaseURL + "/HomePage/Home";
+                     }
+                  }
+               })
+               .catch((err) => {
+                  //alert(err);
+                  console.log("error " + err);
+               });
+         })
+         .catch((err) => {
+            alert(err);
+         });
+   }
+};
+
+const login = async (r) => {
+   const form_login_username = inJS.Auth.Form.Validate("length", message.Email, ".form_login_username"),
+      form_login_pwd = inJS.Auth.Form.Validate("length", message.Password, ".form_login_pwd");
+   console.log(form_login_username[1], "form_login_username[1]");
+   console.log(_BaseURL);
+   if (form_login_username[0] && form_login_pwd[0]) {
+      $.ajax({
+         method: "post",
+         type: "json",
+         url: _BaseURL + "/Auth/HasPermanentID",
+         data: { StudentID: form_login_username[1] },
+         beforeSend: function () {
+            // $(".form_login_btn, app_custom_button").css(message.LoginResBefs);
+            $(".form_login_btn").html(`<i class="fas fa-spinner fa-spin fa-lg"></i>`);
+         },
+         success: function (res) {
+            console.log(res);
+            let response = JSON.parse(res.data);
+            if (response[0].Response == "0") {
+               $.ajax({
+                  method: "post",
+                  type: "json",
+                  url: _BaseURL + "/Auth/UserLogin_",
+                  data: {
+                     Username: form_login_username[1],
+                     Password: form_login_pwd[1],
+                  },
+                  beforeSend: function () {
+                     // $(".form_login_btn, app_custom_button").css(message.LoginResBefs);
+                     $(".form_login_btn").html(`<i class="fas fa-spinner fa-spin fa-lg"></i>`);
+                  },
+                  success: function (res) {
+                     console.log(res);
+                     response = JSON.parse(res.data);
+                     resTable = response.Table[0];
+                     if (res.success) {
+                        if (resTable.Error === "Success") {
+                           console.log(resTable.Registered);
+                           ifStudent = resTable.Registered >= 1 || false || 0;
+                           inJS.LocalStorage.Set(btoa("std"), btoa(resTable.StudentID));
+                           inJS.LocalStorage.Set(btoa("rgt"), btoa(resTable.Registered));
+                           if (ifStudent) {
+                              // axios.post('/Auth/UserLogin', {
+                              //    "Username": $(".form_login_username").val(),
+                              //    "Password": $(".form_login_pwd").val()
+                              // }).then(res => {
+                              //    console.log(res);
+
+                              //    window.location.href = "/HomePage/Home?log=new";
+                              // });
+
+                              if (resTable.UserType != "Student") {
+                                 $(".form_login_btn").html(`Sign In`);
+                                 alert("For students only");
+                                 // window.location.href = _BaseURL + "/";
+                                 // axios
+                                 //     .post(_BaseURL +"/Auth/UserLogin", {
+                                 //         Username: $(".form_login_username").val(),
+                                 //         Password: $(".form_login_pwd").val(),
+                                 //     })
+                                 //     .then((res) => {
+                                 //         console.log(res);
+
+                                 //         window.location.href = _BaseURL + "/HomePage/Home?log=new";
+                                 //     });
+                              } else {
+                                 axios
+                                    .post(_BaseURL + "/Auth/CheckConcent", { StudentID: res.StudentID })
+                                    .then((resConsent) => {
+                                       console.log(resConsent, "[consent]");
+                                       const data = JSON.parse(resConsent.data.data) || [];
+                                       if (data.length === 0) {
+                                          if (parseInt(res.Age) > 18) {
+                                             JCAdult(res.StudentID, res.StudentName, res.BranchName, response.Table[0].isContactUpdated, resTable.Email, resTable.ContactNo);
+                                          } else {
+                                             //JCMinor(res.StudentID, res.StudentName, res.BranchName, response.Table[0].isContactUpdated, resTable.Email, resTable.ContactNo);
+                                             JCAdult(res.StudentID, res.StudentName, res.BranchName, response.Table[0].isContactUpdated, resTable.Email, resTable.ContactNo);
+                                          }
+                                       } else {
+                                          if (response.Table[0].isContactUpdated === null) {
+                                             $.dialog({
+                                                title: `Please confirm your Email and Contact Number`,
+                                                theme: "modern",
+                                                animation: "scale",
+                                                closeIcon: false,
+                                                draggable: false,
+                                                backgroundDismiss: false,
+                                                columnClass: "small",
+                                                containerFluid: true,
+                                                backgroundDismissAnimation: "glow",
+                                                bgOpacity: 1,
+                                                content: `
+                                                                  <div id="JCVerify" style="padding-top: 10px;">
+                                                                     <div class="d-flex justify-content-center">
+                                                                        <div class="col-lg-12 col-md-12 col-sm-12">
+                                                                           <h5 class="pb-5">IMPORTANT: If the data below is not your current email or contact number, please change it.</h5>
+                                                                           <div class="form-group">
+                                                                              <label>Email</label>
+                                                                              <input 
+                                                                                 type="text"
+                                                                                 class="form-control"
+                                                                                 value="${resTable.Email || ""}"
+                                                                                 id="JC_Email"
+                                                                                 oninput="Validator('JC_Email')"
+                                                                              />
+                                                                              <span class="text-danger JC_Email"></span>
+                                                                              <span class="emailError text-danger"></span>
+                                                                           </div>
+                                                                           <div class="form-group">
+                                                                              <label>ContactNo (11 digit # ex. 09123456789)</label>
+                                                                              <input 
+                                                                                 type="text"
+                                                                                 class="form-control"
+                                                                                 value="${resTable.ContactNo || ""}"
+                                                                                 id="JC_ContactNo"
+                                                                                 maxlength="11"
+                                                                                 onkeypress="NumbersOnly(event)"
+                                                                                 oninput="Validator('JC_ContactNo')"
+                                                                              />
+                                                                              <span class="text-danger JC_ContactNo"></span>
+                                                                           </div>
+                                                                           <div class="form-group">
+                                                                              <button class="btn btn-success" onclick="UpdateInfo()">Confirm</button>
+                                                                           </div>
+                                                                        </div>
+                                                                     </div>
+                                                                  </div>
+                                                               `,
+                                             });
+                                          } else {
+                                             axios
+                                                .post(_BaseURL + "/Auth/UserLogin", {
+                                                   Username: $(".form_login_username").val(),
+                                                   Password: $(".form_login_pwd").val(),
+                                                })
+                                                .then((res) => {
+                                                   console.log(res);
+                                                   //===== VERIFY6START
+                                                   //$.ajax({
+                                                   //   method: "post",
+                                                   //   dataType: "json",
+                                                   //   url: "/Verify/CheckUserSMSEmail",
+                                                   //   data: {
+                                                   //      "UserID": $(".form_login_username").val(),
+                                                   //   },
+                                                   //   success: function (data) {
+                                                   //      const response = JSON.parse(data.data);
+                                                   //      console.log(response[0].IsEmailVerified);
+                                                   //      console.log(response[0].IsSMSVerified);
+                                                   //      if (response[0].IsEmailVerified == null) {
+                                                   //         window.location.href = "/Verify/EmailVerify";
+                                                   //      } else if (response[0].IsSMSVerified == null) {
+                                                   //         window.location.href = "/Verify/SMSVerify";
+                                                   //      } else {
+                                                   //         window.location.href = "/HomePage/Home?log=new";
+                                                   //      }
+                                                   //   },
+                                                   //   error: function (data) {
+                                                   //      alert('Test');
+                                                   //   },
+                                                   //});
+                                                   // ==== VERIFY6END
+                                                   setCookie("dc-token", res?.data?.jwtToken);
+                                                   window.location.href = _BaseURL + "/HomePage/Home?log=new";
+                                                });
+                                          }
+                                       }
+                                    })
+                                    .catch((err) => {
+                                       alert(err);
+                                    });
+                              }
+                           } else if (!ifStudent) {
+                              console.log("Auth GeneralInfo");
+                              axios
+                                 .post(_BaseURL + "/Auth/UserLogin", {
+                                    Username: $(".form_login_username").val(),
+                                    Password: $(".form_login_pwd").val(),
+                                 })
+                                 .then((res) => {
+                                    console.log(res);
+                                    //window.location.href = "/Auth/GeneralInfo";
+                                    window.location.href = _BaseURL + "/AdmissionForm/AdmissionForm";
+                                 });
+                           } else {
+                              console.log("Auth Login");
+                              window.location.href = _BaseURL + "/Auth/Login";
+                           }
+                        } else if (resTable.Error === "Not Exists") {
+                           $(".form_login_btn, app_custom_button").css(message.LoginResScs);
+                           $(".form_login_btn").html(`Sign In`);
+                           $(".error_handler").html(message.EmailPwd);
+                        } else if (resTable.Error === "Not Verified" || resTable.Error === "Please verify your email before logging in") {
+                           $(".form_login_btn, app_custom_button").css(message.LoginResScs);
+                           $(".form_login_btn").html(`Sign In`);
+                           $(".error_handler").html(message.NotVrfd);
+                        } else {
+                           console.log(message.Smthwnt);
+                        }
+                     } else {
+                        console.log(message.Smthwnt);
+                     }
+                  },
+                  error: function (sts, exct) {
+                     console.log(exct);
+                  },
+               });
+            } else {
+               console.log(response[0].PermanentID);
+               if (confirm(`Your permanent StudentID is ${response[0].PermanentID}. Click ok to login.`)) {
+                  document.querySelector(".form_login_username").value = response[0].PermanentID;
+                  $.ajax({
+                     method: "post",
+                     type: "json",
+                     url: _BaseURL + "/Auth/UserLogin_",
+                     data: {
+                        Username: form_login_username[1],
+                        Password: form_login_pwd[1],
+                     },
+                     beforeSend: function () {
+                        // $(".form_login_btn, app_custom_button").css(message.LoginResBefs);
+                        $(".form_login_btn").html(`<i class="fas fa-spinner fa-spin fa-lg"></i>`);
+                     },
+                     success: function (res) {
+                        response = JSON.parse(res.data);
+                        resTable = response.Table[0];
+                        console.log(response);
+                        if (res.success) {
+                           if (resTable.Error === "Success") {
+                              console.log(resTable.Registered);
+                              ifStudent = resTable.Registered >= 1 || false || 0;
+                              inJS.LocalStorage.Set(btoa("std"), btoa(resTable.StudentID));
+                              inJS.LocalStorage.Set(btoa("rgt"), btoa(resTable.Registered));
+                              if (ifStudent) {
+                                 // axios.post('/Auth/UserLogin', {
+                                 //    "Username": $(".form_login_username").val(),
+                                 //    "Password": $(".form_login_pwd").val()
+                                 // }).then(res => {
+                                 //    console.log(res);
+
+                                 //    window.location.href = "/HomePage/Home?log=new";
+                                 // });
+
+                                 if (resTable.UserType != "Student") {
+                                    axios
+                                       .post(_BaseURL + "/Auth/UserLogin", {
+                                          Username: $(".form_login_username").val(),
+                                          Password: $(".form_login_pwd").val(),
+                                       })
+                                       .then((res) => {
+                                          console.log(res);
+                                          setCookie("dc-token", res?.data?.jwtToken);
+                                          window.location.href = _BaseURL + "/HomePage/Home?log=new";
+                                       });
+                                 } else {
+                                    if (response.Table[0].isContactUpdated === null) {
+                                       $.dialog({
+                                          title: `Update Information`,
+                                          theme: "modern",
+                                          animation: "scale",
+                                          closeIcon: false,
+                                          draggable: false,
+                                          backgroundDismiss: false,
+                                          columnClass: "small",
+                                          containerFluid: true,
+                                          backgroundDismissAnimation: "glow",
+                                          bgOpacity: 1,
+                                          content: `
+                                             <div id="JCVerify" style="padding: 10px;">
+                                                <div class="d-flex justify-content-center">
+                                                   <div class="col-lg-12 col-md-12 col-sm-12">
+                                                      <div class="form-group">
+                                                         <label>Email</label>
+                                                         <input 
+                                                            type="text"
+                                                            class="form-control"
+                                                            value="${resTable.Email}"
+                                                            id="JC_Email"
+                                                            oninput="Validator('JC_Email')"
+                                                         />
+                                                         <span class="text-danger JC_Email"></span>
+                                                      </div>
+                                                      <div class="form-group">
+                                                         <label>ContactNo</label>
+                                                         <input 
+                                                            type="text"
+                                                            class="form-control"
+                                                            value="${resTable.ContactNo}"
+                                                            id="JC_ContactNo"
+                                                            maxlength="11"
+                                                            onkeypress="NumbersOnly(event)"
+                                                            oninput="Validator('JC_ContactNo')"
+                                                         />
+                                                         <span class="text-danger JC_ContactNo"></span>
+                                                      </div>
+                                                      <div class="form-group">
+                                                         <button class="btn btn-success" onclick="UpdateInfo()">Update</button>
+                                                      </div>
+                                                   </div>
+                                                </div>
+                                             </div>
+                                          `,
+                                       });
+                                    } else {
+                                       axios
+                                          .post("/Auth/UserLogin", {
+                                             Username: $(".form_login_username").val(),
+                                             Password: $(".form_login_pwd").val(),
+                                          })
+                                          .then((res) => {
+                                             console.log(res);
+                                             setCookie("dc-token", res?.data?.jwtToken);
+                                             window.location.href = _BaseURL + "/HomePage/Home?log=new";
+                                          });
+                                    }
+                                 }
+                              } else if (!ifStudent) {
+                                 console.log("Auth GeneralInfo");
+                                 axios
+                                    .post("/Auth/UserLogin", {
+                                       Username: $(".form_login_username").val(),
+                                       Password: $(".form_login_pwd").val(),
+                                    })
+                                    .then((res) => {
+                                       console.log(res);
+
+                                       //window.location.href = "/Auth/GeneralInfo";
+                                       window.location.href = _BaseURL + "/AdmissionForm/AdmissionForm";
+                                    });
+                              } else {
+                                 console.log("Auth Login");
+                                 window.location.href = _BaseURL + "/Auth/Login";
+                              }
+                           } else if (resTable.Error === "Not Exists") {
+                              $(".form_login_btn, app_custom_button").css(message.LoginResScs);
+                              $(".form_login_btn").html(`Sign In`);
+                              $(".error_handler").html(message.EmailPwd);
+                           } else if (resTable.Error === "Not Verified" || resTable.Error === "Please verify your email before logging in") {
+                              $(".form_login_btn, app_custom_button").css(message.LoginResScs);
+                              $(".form_login_btn").html(`Sign In`);
+                              $(".error_handler").html(message.NotVrfd);
+                           } else {
+                              console.log(message.Smthwnt);
+                           }
+                        } else {
+                           console.log(message.Smthwnt);
+                        }
+                     },
+                     error: function (sts, exct) {
+                        console.log(exct);
+                     },
+                  });
+               } else {
+                  return true;
+               }
+            }
+         },
+      });
+
+      return true;
+   } else {
+      return false;
+   }
+};
+
+const NumbersOnly = (evt) => {
+   var theEvent = evt || window.event;
+   // Handle paste
+   if (theEvent.type === "paste") {
+      key = event.clipboardData.getData("text/plain");
+   } else {
+      // Handle key press
+      var key = theEvent.keyCode || theEvent.which;
+      key = String.fromCharCode(key);
+   }
+   var regex = /[0-9]/;
+   if (!regex.test(key)) {
+      theEvent.returnValue = false;
+      if (theEvent.preventDefault) theEvent.preventDefault();
+   }
+};
+
+{
+   /* <div class="form-group">
+ <button class="btn btn-primary" id="JC_SendCode" onclick="SendCode()">Send Code</button>
+ </div>
+ <div class="form-group">
+ <label>Enter Email Code</label>
+ <input type="text" class="form-control"id="JC_Email_Code" />
+ </div>
+ <div class="form-group">
+ <label>Enter SMS Code</label>
+ <input type="text" class="form-control"id="JC_SMS_Code" />
+ </div>
+ <div class="form-group">
+ <button class="btn btn-success">Verify</button>
+ </div> */
+}
+
+$(".continue-usn").click(function () {
+   const form_login_username = inJS.Auth.Form.Validate("length", message.Email, ".form_login_username"),
+      form_login_pwd = inJS.Auth.Form.Validate("length", message.Password, ".form_login_pwd");
+   $.ajax({
+      method: "post",
+      type: "json",
+      url: _BaseURL + "/Auth/UserLogin",
+      data: {
+         Username: form_login_username[1],
+         Password: form_login_pwd[1],
+      },
+      beforeSend: function () {
+         $(".form_login_btn, app_custom_button").css(message.LoginResBefs);
+         $(".form_login_btn").html(message.Load);
+      },
+      success: function (res) {
+         response = JSON.parse(res.data);
+         resTable = response.Table[0];
+         console.log(resTable);
+         if (res.success) {
+            if (resTable.Error === "Success") {
+               console.log(resTable.Registered);
+               ifStudent = resTable.Registered >= 1 || false || 0;
+               inJS.LocalStorage.Set(btoa("std"), btoa(resTable.StudentID));
+               inJS.LocalStorage.Set(btoa("rgt"), btoa(resTable.Registered));
+               if (ifStudent) {
+                  setCookie("dc-token", res?.data?.jwtToken);
+                  window.location.href = _BaseURL + "/HomePage/Home?log=new";
+               } else if (!ifStudent) {
+                  //window.location.href = "/Auth/GeneralInfo";
+                  window.location.href = _BaseURL + "/AdmissionForm/AdmissionForm";
+               } else {
+                  window.location.href = _BaseURL + "/Auth/Login";
+               }
+            } else if (resTable.Error === "Not Exists") {
+               $(".form_login_btn, app_custom_button").css(message.LoginResScs);
+               $(".form_login_btn").html(`Sign In`);
+               $(".error_handler").html(message.EmailPwd);
+            } else if (resTable.Error === "Not Verified" || resTable.Error === "Please verify your email before logging in") {
+               $(".form_login_btn, app_custom_button").css(message.LoginResScs);
+               $(".form_login_btn").html(`Sign In`);
+               $(".error_handler").html(message.NotVrfd);
+            } else {
+               console.log(message.Smthwnt);
+            }
+         } else {
+            console.log(message.Smthwnt);
+         }
+      },
+      error: function (sts, exct) {
+         console.log(exct);
+      },
+   });
+});
+
+document.querySelector(".form_login_username").addEventListener("keypress", function (e) {
+   if (e.keyCode === 13) {
+      login();
+   }
+});
+
+document.querySelector(".form_login_pwd").addEventListener("keypress", function (e) {
+   if (e.keyCode === 13) {
+      login();
+   }
+});
+
+window.addEventListener("keyup", function (e) {
+   ee = e || window.event;
+   if (ee.altKey && ee.which == 65) {
+      $.ajax({
+         method: "post",
+         type: "json",
+         url: _BaseURL + "/Auth/UserLogin",
+         data: {
+            Username: atob("YWRtaW4="),
+            Password: atob("UGEkJHcwcmQwMA=="),
+         },
+         beforeSend: function () {
+            $(".form_login_btn, app_custom_button").css(message.LoginResBefs);
+            $(".form_login_btn").html(message.Load);
+         },
+         success: function (res) {
+            response = JSON.parse(res.data);
+            resTable = response.Table[0];
+            console.log(resTable);
+            if (res.success) {
+               if (resTable.Error === "Success") {
+                  console.log(resTable.Registered);
+                  ifStudent = resTable.Registered >= 1 || false || 0;
+                  inJS.LocalStorage.Set(btoa("std"), btoa(resTable.StudentID));
+                  inJS.LocalStorage.Set(btoa("rgt"), btoa(resTable.Registered));
+                  if (ifStudent) {
+                     setCookie("dc-token", res?.data?.jwtToken);
+                     window.location.href = _BaseURL + "/HomePage/Home?log=new";
+                  } else if (!ifStudent) {
+                     //window.location.href = "/Auth/GeneralInfo";
+                     window.location.href = _BaseURL + "/AdmissionForm/AdmissionForm";
+                  } else {
+                     window.location.href = _BaseURL + "/Auth/Login";
+                  }
+               } else if (resTable.Error === "Not Exists") {
+                  $(".form_login_btn, app_custom_button").css(message.LoginResScs);
+                  $(".form_login_btn").html(`Sign In`);
+                  $(".error_handler").html(message.EmailPwd);
+               } else if (resTable.Error === "Not Verified" || resTable.Error === "Please verify your email before logging in") {
+                  $(".form_login_btn, app_custom_button").css(message.LoginResScs);
+                  $(".form_login_btn").html(`Sign In`);
+                  $(".error_handler").html(message.NotVrfd);
+               } else {
+                  console.log(message.Smthwnt);
+               }
+            } else {
+               console.log(message.Smthwnt);
+            }
+         },
+      });
+      return false;
+   }
+});
+
+//const statusChangeCallback = function(response) {
+//  if (response.status === "connected") FbLogin();
+//};
+
+//const checkLoginState = function() {
+//  FB.getLoginStatus(function(response) {
+//    statusChangeCallback(response);
+//  });
+//};
+
+//window.fbAsyncInit = function() {
+//  FB.init({
+//    appId: "2451212088466562",
+//    cookie: true,
+//    xfbml: true,
+//    version: "v6.0",
+//    oauth: true
+//  });
+
+//  FB.getLoginStatus(function(response) {
+//    statusChangeCallback(response);
+//  });
+//};
+
+//(function(d, s, id) {
+//  var js,
+//    fjs = d.getElementsByTagName(s)[0];
+//  if (d.getElementById(id)) return;
+//  js = d.createElement(s);
+//  js.id = id;
+//  js.src = "https://connect.facebook.net/en_US/sdk.js";
+//  fjs.parentNode.insertBefore(js, fjs);
+//})(document, "script", "facebook-jssdk");
+
+//const FbLogin = function() {
+//  FB.api(
+//    "/me?fields=id,first_name,middle_name,last_name,name,email,birthday,address,about,hometown,gender,location,picture,education,name_format,religion,relationship_status,work,short_name,inbox,permissions,screennames",
+//    function(response) {
+//      console.clear();
+//      let usernamesd = `${response.first_name}_${response.id[-1]}${
+//        response.id[-2]
+//      }${response.id[-3]}${response.id[-4]}${response.id[-5]}${
+//        response.id[-6]
+//      }`;
+//      data = JSON.stringify({
+//        socialID: response.id,
+//        lastname:
+//          response.last_name == null || response.last_name == ""
+//            ? null
+//            : response.last_name,
+//        middlename:
+//          response.middle_name == null || response.middle_name == ""
+//            ? null
+//            : response.middle_name,
+//        firstname:
+//          response.first_name == null || response.first_name == ""
+//            ? null
+//            : response.first_name,
+//        username: usernamesd,
+//        email:
+//          response.email == null || response.email == ""
+//            ? null
+//            : response.email,
+//        type: "Facebook"
+//      });
+//      $.ajax({
+//        method: "post",
+//        dataType: "json",
+//        url: "/Auth/SocialMediaLogin/",
+//        data: {
+//          UserAccount: data
+//        },
+//        beforeSend: function() {
+//          $(".form_login_btn, app_custom_button").css(message.LoginResBefs);
+//          $(".form_login_btn").html(message.Load);
+//        },
+//        success: function(res) {
+//          response = JSON.parse(res.data);
+//          resTable = response.Table[0];
+//          if (res.success) {
+//            if (resTable.Error === "Success") {
+//              ifStudent = resTable.Registered >= 1 || false || 0;
+//              inJS.LocalStorage.Set(btoa("std"), btoa(resTable.StudentID));
+//              inJS.LocalStorage.Set(btoa("rgt"), btoa(resTable.Registered));
+//              if (ifStudent) {
+//                window.location.href = "/HomePage/Home";
+//              } else if (!ifStudent) {
+//                window.location.href = "/Auth/GeneralInfo";
+//              } else {
+//                window.location.href = "/Auth/Login";
+//              }
+//            } else if (resTable.Error === "Not Exists") {
+//              $(".form_login_btn, app_custom_button").css(message.LoginResScs);
+//              $(".form_login_btn").html(`Sign In`);
+//              $(".error_handler").html(message.EmailPwd);
+//            } else if (resTable.Error === "Not Verified") {
+//              $(".form_login_btn, app_custom_button").css(message.LoginResScs);
+//              $(".form_login_btn").html(`Sign In`);
+//              $(".error_handler").html(message.NotVrfd);
+//            } else {
+//              console.log(message.Smthwnt);
+//            }
+//          } else {
+//            console.log(message.Smthwnt);
+//          }
+//        }
+//      });
+//    }
+//  );
+//};
+
+//
+// function init() {
+//   gapi.load('auth2', function() {
+//     /* Ready. Make a call to gapi.auth2.init or some other API */
+//   });
+// }
+//function onSignIn(googleUser) {
+//  var profile = googleUser.getBasicProfile();
+//  profile.getId();
+//  profile.getName();
+//  profile.getGivenName();
+//  profile.getFamilyName();
+//  profile.getImageUrl();
+//  profile.getEmail();
+//  let usernamesd = `${profile.getGivenName()}_${profile.getId()[-1]}${
+//    profile.getId()[-2]
+//  }${profile.getId()[-3]}${profile.getId()[-4]}${profile.getId()[-5]}${
+//    profile.getId()[-6]
+//  }`;
+
+//  data = JSON.stringify({
+//    socialID: profile.getId(),
+//    lastname:
+//      profile.getFamilyName() == null || profile.getFamilyName() == ""
+//        ? null
+//        : profile.getFamilyName(),
+//    middlename: null,
+//    firstname:
+//      profile.getGivenName() == null || profile.getGivenName() == ""
+//        ? null
+//        : profile.getGivenName(),
+//    username: usernamesd,
+//    email:
+//      profile.getEmail() == null || profile.getEmail() == ""
+//        ? null
+//        : profile.getEmail(),
+//    type: "Google"
+//  });
+//  $.ajax({
+//    method: "post",
+//    dataType: "json",
+//    url: "/Auth/SocialMediaLogin/",
+//    data: {
+//      UserAccount: data
+//    },
+//    beforeSend: function() {
+//      $(".form_login_btn, app_custom_button").css(message.LoginResBefs);
+//      $(".form_login_btn").html(message.Load);
+//    },
+//    success: function(res) {
+//      response = JSON.parse(res.data);
+//      resTable = response.Table[0];
+//      if (res.success) {
+//        if (resTable.Error === "Success") {
+//          ifStudent = resTable.Registered >= 1 || false || 0;
+//          inJS.LocalStorage.Set(btoa("std"), btoa(resTable.StudentID));
+//          inJS.LocalStorage.Set(btoa("rgt"), btoa(resTable.Registered));
+//          if (ifStudent) {
+//            window.location.href = "/Dashboard/StudentDashboard";
+//          } else if (!ifStudent) {
+//            window.location.href = "/Auth/GeneralInfo";
+//          } else {
+//            window.location.href = "/Auth/Login";
+//          }
+//        } else {
+//          console.log(message.Smthwnt);
+//        }
+//      } else {
+//        console.log(message.Smthwnt);
+//      }
+//    }
+//  });
+//}
